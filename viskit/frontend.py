@@ -56,7 +56,7 @@ def send_css(path):
 
 
 def make_plot(plot_list, use_median=False, plot_width=None, plot_height=None,
-              title=None):
+              title=None, xaxis=None):
     data = []
     p25, p50, p75 = [], [], []
     for idx, plt in enumerate(plot_list):
@@ -74,6 +74,9 @@ def make_plot(plot_list, use_median=False, plot_width=None, plot_height=None,
             y = list(plt.means)
             y_upper = list(plt.means + plt.stds)
             y_lower = list(plt.means - plt.stds)
+
+        if xaxis is not None:
+            x = xaxis
 
         data.append(go.Scatter(
             x=x + x[::-1],
@@ -97,8 +100,6 @@ def make_plot(plot_list, use_median=False, plot_width=None, plot_height=None,
         legend=dict(
             x=1,
             y=1,
-            # xanchor="left",
-            # yanchor="bottom",
         ),
         width=plot_width,
         height=plot_height,
@@ -117,7 +118,7 @@ def make_plot(plot_list, use_median=False, plot_width=None, plot_height=None,
         return fig_div
 
 
-def make_plot_eps(plot_list, use_median=False, counter=0):
+def make_plot_eps(plot_list, use_median=False, counter=0, xaxis=None):
     import matplotlib.pyplot as _plt
     f, ax = _plt.subplots(figsize=(8, 5))
     for idx, plt in enumerate(plot_list):
@@ -132,80 +133,26 @@ def make_plot_eps(plot_list, use_median=False, counter=0):
             y = list(plt.means)
             y_upper = list(plt.means + plt.stds)
             y_lower = list(plt.means - plt.stds)
-        plt.legend = plt.legend.replace('rllab.algos.trpo.TRPO', 'TRPO')
-        plt.legend = plt.legend.replace('rllab.algos.vpg.VPG', 'REINFORCE')
-        plt.legend = plt.legend.replace('rllab.algos.erwr.ERWR', 'ERWR')
-        plt.legend = plt.legend.replace('sandbox.rein.algos.trpo_vime.TRPO',
-                                        'TRPO+VIME')
-        plt.legend = plt.legend.replace('sandbox.rein.algos.vpg_vime.VPG',
-                                        'REINFORCE+VIME')
-        plt.legend = plt.legend.replace('sandbox.rein.algos.erwr_vime.ERWR',
-                                        'ERWR+VIME')
-        plt.legend = plt.legend.replace('0.0001', '1e-4')
-        #         plt.legend = plt.legend.replace('0.001', 'TRPO+VIME')
-        #         plt.legend = plt.legend.replace('0', 'TRPO')
-        #         plt.legend = plt.legend.replace('0.005', 'TRPO+L2')
 
-        if idx == 0:
-            plt.legend = 'TRPO (0.0)'
-        if idx == 1:
-            plt.legend = 'TRPO+VIME (103.7)'
-        if idx == 2:
-            plt.legend = 'TRPO+L2 (0.0)'
+        if xaxis is not None:
+            x = xaxis
 
         ax.fill_between(
             x, y_lower, y_upper, interpolate=True, facecolor=color,
             linewidth=0.0, alpha=0.3)
-        if idx == 2:
-            ax.plot(x, y, color=color, label=plt.legend, linewidth=2.0,
-                    linestyle="--")
-        else:
-            ax.plot(x, y, color=color, label=plt.legend, linewidth=2.0)
+
+        ax.plot(x, y, color=color, label=plt.legend, linewidth=2.0)
         ax.grid(True)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-        if counter == 1:
-            #             ax.set_xlim([0, 120])
-            ax.set_ylim([-3, 60])
-            #             ax.set_xlim([0, 80])
-
-            loc = 'upper left'
-        elif counter == 2:
-            ax.set_ylim([-0.04, 0.4])
-
-            #             ax.set_ylim([-0.1, 0.4])
-            ax.set_xlim([0, 2000])
-            loc = 'upper left'
-        elif counter == 3:
-            #             ax.set_xlim([0, 1000])
-            loc = 'lower right'
-        elif counter == 4:
-            #             ax.set_xlim([0, 800])
-            #             ax.set_ylim([0, 2])
-            loc = 'lower right'
-        leg = ax.legend(loc=loc, prop={'size': 12}, ncol=1)
+        leg = ax.legend(prop={'size': 12}, ncol=1)
         for legobj in leg.legendHandles:
             legobj.set_linewidth(5.0)
 
-        def y_fmt(x, y):
-            return str(int(np.round(x / 1000.0))) + 'K'
-
-        import matplotlib.ticker as tick
-        #         ax.xaxis.set_major_formatter(tick.FuncFormatter(y_fmt))
         _plt.savefig('tmp' + str(counter) + '.pdf', bbox_inches='tight')
 
 
 def summary_name(exp, selector=None):
-    # if selector is not None:
-    #     exclude_params = set([x[0] for x in selector._filters])
-    # else:
-    #     exclude_params = set()
-    # rest_params = set([x[0] for x in distinct_params]).difference(exclude_params)
-    # if len(rest_params) > 0:
-    #     name = ""
-    #     for k in rest_params:
-    #         name += "%s=%s;" % (k.split(".")[-1], str(exp.flat_params.get(k, "")).split(".")[-1])
-    #     return name
     return exp.params["exp_name"]
 
 
@@ -236,6 +183,7 @@ def get_plot_instruction(
         legend_post_processor=None,
         normalize_error=False,
         custom_series_splitter=None,
+        custom_xaxis=None
 ):
     """
     A custom filter might look like
@@ -477,11 +425,13 @@ def get_plot_instruction(
             plots.append(make_plot(
                 to_plot,
                 use_median=use_median, title=fig_title,
-                plot_width=plot_width, plot_height=plot_height
+                plot_width=plot_width, plot_height=plot_height,
+                xaxis=custom_xaxis
             ))
 
         if gen_eps:
-            make_plot_eps(to_plot, use_median=use_median, counter=counter)
+            make_plot_eps(to_plot, use_median=use_median,
+                          counter=counter, xaxis=custom_xaxis)
         counter += 1
     return "\n".join(plots)
 
@@ -674,23 +624,33 @@ def plot_div():
     plot_width = parse_float_arg(args, "plot_width")
     plot_height = parse_float_arg(args, "plot_height")
     custom_filter = args.get("custom_filter", None)
+    legend_post_processor = args.get("legend_post_processor", None)
     custom_series_splitter = args.get("custom_series_splitter", None)
+    custom_xaxis = args.get("custom_xaxis", None)
+
     if custom_filter is not None and len(custom_filter.strip()) > 0:
         custom_filter = safer_eval(custom_filter)
 
     else:
         custom_filter = None
-    legend_post_processor = args.get("legend_post_processor", None)
+
     if legend_post_processor is not None and len(
             legend_post_processor.strip()) > 0:
         legend_post_processor = safer_eval(legend_post_processor)
     else:
         legend_post_processor = None
+
     if custom_series_splitter is not None and len(
             custom_series_splitter.strip()) > 0:
         custom_series_splitter = safer_eval(custom_series_splitter)
     else:
         custom_series_splitter = None
+
+    if custom_xaxis is not None and len(
+            custom_xaxis.strip()) > 0:
+        custom_xaxis = safer_eval(custom_xaxis)
+    else:
+        custom_xaxis = None
     plot_div = get_plot_instruction(
         plot_key=plot_key,
         split_keys=split_keys,
@@ -713,6 +673,7 @@ def plot_div():
         legend_post_processor=legend_post_processor,
         normalize_error=normalize_error,
         custom_series_splitter=custom_series_splitter,
+        custom_xaxis=custom_xaxis
     )
     return plot_div
 

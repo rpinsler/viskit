@@ -160,17 +160,6 @@ def smart_eval(string):
 
 
 def extract_distinct_params(exps_data, excluded_params=('seed', 'log_dir'), l=1):
-    # all_pairs = unique(flatten([d.flat_params.items() for d in exps_data]))
-    # if logger:
-    #     logger("(Excluding {excluded})".format(excluded=', '.join(excluded_params)))
-    # def cmp(x,y):
-    #     if x < y:
-    #         return -1
-    #     elif x > y:
-    #         return 1
-    #     else:
-    #         return 0
-
     try:
         params_as_evalable_strings = [
             list(

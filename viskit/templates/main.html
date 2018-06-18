@@ -66,6 +66,14 @@
                        autocomplete="on"/>
             </div>
         </div>
+        <div class="form-group">
+            <label for="custom_xaxis" class="control-label pull-left">Custom X-Axis: </label>
+            <div class="col-xs-8">
+                <input type="text" class="form-control" id="custom_xaxis" name="custom_xaxis"
+                       placeholder="Write a list used as the x-axis"
+                       autocomplete="on"/>
+            </div>
+        </div>
         <div class="form-group ">
             <label for="clip_plot_value" class="control-label pull-left">Clip absolute value:</label>
             <div class="col-xs-2">
@@ -335,6 +343,7 @@
         var customFilter = $controlPanel.find("input[name=custom_filter]").val();
         var legendPostProcessor = $controlPanel.find("input[name=legend_post_processor]").val();
         var customSeriesSplitter = $controlPanel.find("input[name=custom_series_splitter]").val();
+        var customXAxis = $controlPanel.find("input[name=custom_xaxis]").val();
         console.log("updating");
         $.get("/plot_div",
                 $.extend({
@@ -357,6 +366,7 @@
                     "best_based_on_final": bestBasedOnFinal,
                     "normalize_error": normalizeError,
                     "custom_series_splitter": customSeriesSplitter,
+                    "custom_xaxis": customXAxis,
                     "only_show_best_sofar": onlyShowBestSofar,
                 }, options),
                 function (data) {
